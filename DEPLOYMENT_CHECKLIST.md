@@ -108,7 +108,7 @@ Te pedirá autenticación. Opciones:
    - **Runtime**: Node
    - **Build Command**: 
      ```
-     npm install && npx prisma generate && npx prisma migrate deploy && npm run build
+     npm install && npm run build:production
      ```
    - **Start Command**: `npm start`
    - **Instance Type**: Free

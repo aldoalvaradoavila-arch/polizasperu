@@ -8,13 +8,21 @@
         "outDir": "./dist",
         "rootDir": "./src",
         "strict": true,
+        "noImplicitAny": false,
+        "strictNullChecks": true,
         "esModuleInterop": true,
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
         "resolveJsonModule": true,
         "declaration": true,
         "declarationMap": true,
-        "sourceMap": true
+        "sourceMap": true,
+        "typeRoots": [
+            "./node_modules/@types"
+        ],
+        "types": [
+            "node"
+        ]
     },
     "include": [
         "src/**/*"
