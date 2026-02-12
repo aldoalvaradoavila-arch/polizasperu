@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import AdminAPI, { Empresa, CreateEmpresaData } from '../services/adminApi';
+import EmpresaAseguradosModal from './EmpresaAseguradosModal';
 
 interface EmpresasManagerProps {
     empresas: Empresa[];
@@ -10,6 +11,8 @@ interface EmpresasManagerProps {
 export default function EmpresasManager({ empresas, api, onUpdate }: EmpresasManagerProps) {
     const [showModal, setShowModal] = useState(false);
     const [editingEmpresa, setEditingEmpresa] = useState<Empresa | null>(null);
+    const [showAseguradosModal, setShowAseguradosModal] = useState(false);
+    const [selectedEmpresa, setSelectedEmpresa] = useState<Empresa | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
@@ -41,6 +44,11 @@ export default function EmpresasManager({ empresas, api, onUpdate }: EmpresasMan
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleViewAsegurados = (empresa: Empresa) => {
+        setSelectedEmpresa(empresa);
+        setShowAseguradosModal(true);
     };
 
     return (
@@ -120,6 +128,18 @@ export default function EmpresasManager({ empresas, api, onUpdate }: EmpresasMan
                                     <td>
                                         <div className="action-buttons">
                                             <button
+                                                className="btn-icon btn-icon-view"
+                                                onClick={() => handleViewAsegurados(empresa)}
+                                                title="Ver Asegurados"
+                                            >
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                                    <circle cx="9" cy="7" r="4"></circle>
+                                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                                </svg>
+                                            </button>
+                                            <button
                                                 className="btn-icon btn-icon-edit"
                                                 onClick={() => handleEdit(empresa)}
                                                 title="Editar"
@@ -164,6 +184,18 @@ export default function EmpresasManager({ empresas, api, onUpdate }: EmpresasMan
                         setTimeout(() => setSuccess(''), 3000);
                         onUpdate();
                     }}
+                />
+            )}
+
+            {showAseguradosModal && selectedEmpresa && (
+                <EmpresaAseguradosModal
+                    empresa={selectedEmpresa}
+                    api={api}
+                    onClose={() => {
+                        setShowAseguradosModal(false);
+                        setSelectedEmpresa(null);
+                    }}
+                    onUpdate={onUpdate}
                 />
             )}
         </div>

@@ -180,6 +180,56 @@ class AdminAPI {
 
         return response.json();
     }
+
+    // ========== ASEGURADOS POR EMPRESA ==========
+
+    async getAseguradosByEmpresa(ruc: string): Promise<{ empresa: { ruc: string; razon_social: string }; total: number; asegurados: Asegurado[] }> {
+        const response = await fetch(`${API_URL}/api/v1/admin/empresas/${ruc}/asegurados`, {
+            headers: this.getHeaders(),
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Error al obtener asegurados de la empresa');
+        }
+
+        return response.json();
+    }
+
+    async asociarAseguradoAEmpresa(ruc: string, data: {
+        dni: string;
+        tipo_seguro: string;
+        numero_contrato_poliza: string;
+        fecha_inicio: string;
+        fecha_fin: string;
+    }): Promise<{ mensaje: string; poliza: Poliza }> {
+        const response = await fetch(`${API_URL}/api/v1/admin/empresas/${ruc}/asegurados`, {
+            method: 'POST',
+            headers: this.getHeaders(),
+            body: JSON.stringify(data),
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Error al asociar asegurado');
+        }
+
+        return response.json();
+    }
+
+    async desasociarAseguradoDeEmpresa(ruc: string, dni: string): Promise<{ mensaje: string; polizas_eliminadas: number }> {
+        const response = await fetch(`${API_URL}/api/v1/admin/empresas/${ruc}/asegurados/${dni}`, {
+            method: 'DELETE',
+            headers: this.getHeaders(),
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Error al desasociar asegurado');
+        }
+
+        return response.json();
+    }
 }
 
 export default AdminAPI;

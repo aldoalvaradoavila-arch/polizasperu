@@ -337,4 +337,180 @@ router.delete('/empresas/:ruc', requireAuth, async (req: Request, res: Response)
     }
 });
 
+/**
+ * POST /api/v1/admin/empresas/:ruc/asegurados
+ * Asocia un asegurado existente a una empresa creando una póliza
+ */
+router.post('/empresas/:ruc/asegurados', requireAuth, async (req: Request, res: Response): Promise<void> => {
+    try {
+        const ruc = String(req.params.ruc);
+        const { dni, tipo_seguro, numero_contrato_poliza, fecha_inicio, fecha_fin } = req.body;
+
+        // Validaciones
+        if (!dni || !tipo_seguro || !numero_contrato_poliza || !fecha_inicio || !fecha_fin) {
+            res.status(400).json({ error: 'Todos los campos son requeridos.' });
+            return;
+        }
+
+        // Buscar empresa
+        const empresa = await prisma.empresa.findUnique({ where: { ruc } });
+        if (!empresa) {
+            res.status(404).json({ error: 'Empresa no encontrada.' });
+            return;
+        }
+
+        // Buscar asegurado
+        const asegurado = await prisma.asegurado.findUnique({ where: { dni } });
+        if (!asegurado) {
+            res.status(404).json({ error: 'Asegurado no encontrado.' });
+            return;
+        }
+
+        // Verificar si ya existe una póliza del mismo tipo para este asegurado en esta empresa
+        const polizaExistente = await prisma.poliza.findFirst({
+            where: {
+                id_asegurado: asegurado.id,
+                id_empresa: empresa.id,
+                tipo_seguro,
+            },
+        });
+
+        if (polizaExistente) {
+            res.status(409).json({
+                error: `El asegurado ya tiene una póliza de ${tipo_seguro} con esta empresa.`
+            });
+            return;
+        }
+
+        // Crear póliza
+        const poliza = await prisma.poliza.create({
+            data: {
+                tipo_seguro,
+                numero_contrato_poliza,
+                fecha_inicio: new Date(fecha_inicio),
+                fecha_fin: new Date(fecha_fin),
+                id_empresa: empresa.id,
+                id_asegurado: asegurado.id,
+            },
+            include: {
+                asegurado: true,
+                empresa: true,
+            },
+        });
+
+        res.status(201).json({
+            mensaje: 'Asegurado asociado exitosamente a la empresa',
+            poliza,
+        });
+    } catch (error) {
+        console.error('Error al asociar asegurado:', error);
+        res.status(500).json({ error: 'Error interno del servidor.' });
+    }
+});
+
+/**
+ * GET /api/v1/admin/empresas/:ruc/asegurados
+ * Lista todos los asegurados asociados a una empresa
+ */
+router.get('/empresas/:ruc/asegurados', requireAuth, async (req: Request, res: Response): Promise<void> => {
+    try {
+        const ruc = String(req.params.ruc);
+
+        // Buscar empresa
+        const empresa = await prisma.empresa.findUnique({
+            where: { ruc },
+            include: {
+                polizas: {
+                    include: {
+                        asegurado: true,
+                    },
+                },
+            },
+        });
+
+        if (!empresa) {
+            res.status(404).json({ error: 'Empresa no encontrada.' });
+            return;
+        }
+
+        // Extraer asegurados únicos
+        const aseguradosMap = new Map();
+        empresa.polizas.forEach(poliza => {
+            if (!aseguradosMap.has(poliza.asegurado.dni)) {
+                aseguradosMap.set(poliza.asegurado.dni, {
+                    ...poliza.asegurado,
+                    polizas: [],
+                });
+            }
+            aseguradosMap.get(poliza.asegurado.dni).polizas.push({
+                id: poliza.id,
+                tipo_seguro: poliza.tipo_seguro,
+                numero_contrato_poliza: poliza.numero_contrato_poliza,
+                fecha_inicio: poliza.fecha_inicio,
+                fecha_fin: poliza.fecha_fin,
+            });
+        });
+
+        const asegurados = Array.from(aseguradosMap.values());
+
+        res.status(200).json({
+            empresa: {
+                ruc: empresa.ruc,
+                razon_social: empresa.razon_social,
+            },
+            total: asegurados.length,
+            asegurados,
+        });
+    } catch (error) {
+        console.error('Error al listar asegurados de empresa:', error);
+        res.status(500).json({ error: 'Error interno del servidor.' });
+    }
+});
+
+/**
+ * DELETE /api/v1/admin/empresas/:ruc/asegurados/:dni
+ * Elimina todas las pólizas de un asegurado en una empresa específica
+ */
+router.delete('/empresas/:ruc/asegurados/:dni', requireAuth, async (req: Request, res: Response): Promise<void> => {
+    try {
+        const ruc = String(req.params.ruc);
+        const dni = String(req.params.dni);
+
+        // Buscar empresa
+        const empresa = await prisma.empresa.findUnique({ where: { ruc } });
+        if (!empresa) {
+            res.status(404).json({ error: 'Empresa no encontrada.' });
+            return;
+        }
+
+        // Buscar asegurado
+        const asegurado = await prisma.asegurado.findUnique({ where: { dni } });
+        if (!asegurado) {
+            res.status(404).json({ error: 'Asegurado no encontrado.' });
+            return;
+        }
+
+        // Eliminar todas las pólizas del asegurado en esta empresa
+        const resultado = await prisma.poliza.deleteMany({
+            where: {
+                id_asegurado: asegurado.id,
+                id_empresa: empresa.id,
+            },
+        });
+
+        if (resultado.count === 0) {
+            res.status(404).json({ error: 'El asegurado no tiene pólizas con esta empresa.' });
+            return;
+        }
+
+        res.status(200).json({
+            mensaje: `Se eliminaron ${resultado.count} póliza(s) del asegurado en esta empresa`,
+            polizas_eliminadas: resultado.count,
+        });
+    } catch (error) {
+        console.error('Error al desasociar asegurado:', error);
+        res.status(500).json({ error: 'Error interno del servidor.' });
+    }
+});
+
 export { router as adminRouter };

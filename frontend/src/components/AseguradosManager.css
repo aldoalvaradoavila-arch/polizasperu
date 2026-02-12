@@ -173,6 +173,14 @@
     background: #e3f2fd;
 }
 
+.btn-icon-view {
+    color: #9b59b6;
+}
+
+.btn-icon-view:hover {
+    background: #f3e5f5;
+}
+
 .btn-icon-delete {
     color: #e74c3c;
 }
@@ -223,6 +231,10 @@
     animation: slideUp 0.3s ease;
 }
 
+.modal-content-large {
+    max-width: 1000px;
+}
+
 @keyframes slideUp {
     from {
         opacity: 0;
@@ -233,6 +245,37 @@
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+/* Loading */
+.loading-container {
+    text-align: center;
+    padding: 3rem;
+}
+
+.spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.loading-container p {
+    color: #7f8c8d;
+    margin: 0;
 }
 
 .modal-header {
