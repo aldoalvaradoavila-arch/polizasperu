@@ -1,4 +1,8 @@
-export default function Navbar() {
+interface NavbarProps {
+    onAdminClick?: () => void;
+}
+
+export default function Navbar({ onAdminClick }: NavbarProps) {
     return (
         <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-100 shadow-sm">
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -22,6 +26,19 @@ export default function Navbar() {
                         >
                             ¿Qué es SCTR?
                         </a>
+                        {onAdminClick && (
+                            <button
+                                onClick={onAdminClick}
+                                className="hidden sm:inline-flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-[#2D7DD2] px-3 py-2 rounded-lg transition-colors duration-200"
+                                title="Panel de Administración"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                </svg>
+                                Admin
+                            </button>
+                        )}
                         <a
                             href="#contacto"
                             className="hidden sm:inline-flex items-center gap-1.5 text-sm font-medium text-white bg-[#1A3C6E] hover:bg-[#2D7DD2] px-4 py-2 rounded-lg transition-colors duration-200 shadow-sm"

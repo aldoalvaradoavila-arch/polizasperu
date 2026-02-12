@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import { aseguradosRouter } from './routes/asegurados';
+import { adminRouter } from './routes/admin';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -16,7 +17,7 @@ const allowedOrigins = process.env.CORS_ORIGINS
 
 app.use(cors({
     origin: allowedOrigins,
-    methods: ['GET'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
 }));
 
 // Rate limiting — 100 peticiones por 15 minutos por IP
@@ -35,6 +36,7 @@ app.use(express.json());
 
 // Rutas
 app.use('/api/v1/asegurados', aseguradosRouter);
+app.use('/api/v1/admin', adminRouter);
 
 // Health check
 app.get('/api/health', (_req, res) => {
