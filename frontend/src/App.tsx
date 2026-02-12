@@ -60,11 +60,6 @@ export default function App() {
         handleNavigation();
     };
 
-    const goToPublic = () => {
-        window.history.pushState({}, '', '/');
-        setCurrentPage('public');
-    };
-
     if (currentPage === 'admin-login') {
         return <AdminLogin onLogin={handleLogin} />;
     }

@@ -144,7 +144,6 @@ export default function AdminPanel({ apiKey, onLogout }: AdminPanelProps) {
                         {activeTab === 'asegurados' && (
                             <AseguradosManager
                                 asegurados={asegurados}
-                                empresas={empresas}
                                 api={api}
                                 onUpdate={loadData}
                             />

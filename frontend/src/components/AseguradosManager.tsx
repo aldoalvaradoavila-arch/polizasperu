@@ -1,15 +1,14 @@
 import { useState } from 'react';
-import AdminAPI, { Asegurado, Empresa, CreateAseguradoData } from '../services/adminApi';
+import AdminAPI, { Asegurado, CreateAseguradoData } from '../services/adminApi';
 import './AseguradosManager.css';
 
 interface AseguradosManagerProps {
     asegurados: Asegurado[];
-    empresas: Empresa[];
     api: AdminAPI;
     onUpdate: () => void;
 }
 
-export default function AseguradosManager({ asegurados, empresas, api, onUpdate }: AseguradosManagerProps) {
+export default function AseguradosManager({ asegurados, api, onUpdate }: AseguradosManagerProps) {
     const [showModal, setShowModal] = useState(false);
     const [editingAsegurado, setEditingAsegurado] = useState<Asegurado | null>(null);
     const [loading, setLoading] = useState(false);
@@ -154,7 +153,6 @@ export default function AseguradosManager({ asegurados, empresas, api, onUpdate 
             {showModal && (
                 <AseguradoModal
                     asegurado={editingAsegurado}
-                    empresas={empresas}
                     api={api}
                     onClose={() => {
                         setShowModal(false);
@@ -176,13 +174,12 @@ export default function AseguradosManager({ asegurados, empresas, api, onUpdate 
 // Modal Component
 interface AseguradoModalProps {
     asegurado: Asegurado | null;
-    empresas: Empresa[];
     api: AdminAPI;
     onClose: () => void;
     onSuccess: () => void;
 }
 
-function AseguradoModal({ asegurado, empresas, api, onClose, onSuccess }: AseguradoModalProps) {
+function AseguradoModal({ asegurado, api, onClose, onSuccess }: AseguradoModalProps) {
     const [formData, setFormData] = useState<CreateAseguradoData>({
         dni: asegurado?.dni || '',
         nombres: asegurado?.nombres || '',

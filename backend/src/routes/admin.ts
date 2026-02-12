@@ -97,7 +97,7 @@ router.post('/asegurados', requireAuth, async (req: Request, res: Response): Pro
  */
 router.delete('/asegurados/:dni', requireAuth, async (req: Request, res: Response): Promise<void> => {
     try {
-        const { dni } = req.params;
+        const dni = String(req.params.dni);
 
         // Buscar asegurado
         const asegurado = await prisma.asegurado.findUnique({ where: { dni } });
@@ -155,7 +155,7 @@ router.get('/asegurados', requireAuth, async (req: Request, res: Response): Prom
  */
 router.put('/asegurados/:dni', requireAuth, async (req: Request, res: Response): Promise<void> => {
     try {
-        const { dni } = req.params;
+        const dni = String(req.params.dni);
         const { nombres, apellido_paterno, apellido_materno } = req.body;
 
         // Buscar asegurado
@@ -262,7 +262,7 @@ router.post('/empresas', requireAuth, async (req: Request, res: Response): Promi
  */
 router.put('/empresas/:ruc', requireAuth, async (req: Request, res: Response): Promise<void> => {
     try {
-        const { ruc } = req.params;
+        const ruc = String(req.params.ruc);
         const { razon_social, actividad_economica, sede } = req.body;
 
         // Buscar empresa
@@ -299,7 +299,7 @@ router.put('/empresas/:ruc', requireAuth, async (req: Request, res: Response): P
  */
 router.delete('/empresas/:ruc', requireAuth, async (req: Request, res: Response): Promise<void> => {
     try {
-        const { ruc } = req.params;
+        const ruc = String(req.params.ruc);
 
         // Buscar empresa
         const empresa = await prisma.empresa.findUnique({
