@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Asegurado {
+  id               Int      @id @default(autoincrement())
+  dni              String   @unique
+  nombres          String
+  apellido_paterno String
+  apellido_materno String
+  polizas          Poliza[]
+
+  @@map("asegurados")
+}
+
+model Empresa {
+  id                  Int      @id @default(autoincrement())
+  razon_social        String
+  ruc                 String   @unique
+  actividad_economica String
+  sede                String
+  polizas             Poliza[]
+
+  @@map("empresas")
+}
+
+model Poliza {
+  id                      Int        @id @default(autoincrement())
+  tipo_seguro             String     // SCTR_SALUD | SCTR_PENSION
+  numero_contrato_poliza  String
+  fecha_inicio            DateTime
+  fecha_fin               DateTime
+  id_empresa              Int
+  id_asegurado            Int
+  empresa                 Empresa    @relation(fields: [id_empresa], references: [id])
+  asegurado               Asegurado  @relation(fields: [id_asegurado], references: [id])
+
+  @@map("polizas")
+}
