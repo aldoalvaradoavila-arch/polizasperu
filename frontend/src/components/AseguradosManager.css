@@ -145,6 +145,11 @@
     color: #1976d2;
 }
 
+.badge-warning {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
 /* Action Buttons */
 .action-buttons {
     display: flex;

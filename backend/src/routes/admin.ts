@@ -186,6 +186,131 @@ router.put('/asegurados/:dni', requireAuth, async (req: Request, res: Response):
     }
 });
 
+// ========== GESTIÓN DE PÓLIZAS ==========
+
+/**
+ * POST /api/v1/admin/asegurados/:dni/polizas
+ * Agrega una nueva póliza a un asegurado existente
+ */
+router.post('/asegurados/:dni/polizas', requireAuth, async (req: Request, res: Response): Promise<void> => {
+    try {
+        const dni = String(req.params.dni);
+        const { tipo_seguro, numero_contrato_poliza, fecha_inicio, fecha_fin } = req.body;
+
+        // Validaciones
+        if (!tipo_seguro || !numero_contrato_poliza || !fecha_inicio || !fecha_fin) {
+            res.status(400).json({ error: 'Todos los campos son requeridos.' });
+            return;
+        }
+
+        // Buscar asegurado
+        const asegurado = await prisma.asegurado.findUnique({ where: { dni } });
+        if (!asegurado) {
+            res.status(404).json({ error: 'Asegurado no encontrado.' });
+            return;
+        }
+
+        // Buscar primera empresa disponible (o usar la del body si se envía)
+        const empresa = await prisma.empresa.findFirst();
+        if (!empresa) {
+            res.status(500).json({ error: 'No hay empresas en la base de datos.' });
+            return;
+        }
+
+        // Crear póliza
+        const poliza = await prisma.poliza.create({
+            data: {
+                tipo_seguro,
+                numero_contrato_poliza,
+                fecha_inicio: new Date(fecha_inicio),
+                fecha_fin: new Date(fecha_fin),
+                id_empresa: empresa.id,
+                id_asegurado: asegurado.id,
+            },
+            include: {
+                empresa: true,
+            },
+        });
+
+        res.status(201).json({
+            mensaje: 'Póliza agregada exitosamente',
+            poliza,
+        });
+    } catch (error) {
+        console.error('Error al agregar póliza:', error);
+        res.status(500).json({ error: 'Error interno del servidor.' });
+    }
+});
+
+/**
+ * PUT /api/v1/admin/polizas/:id
+ * Actualiza una póliza existente
+ */
+router.put('/polizas/:id', requireAuth, async (req: Request, res: Response): Promise<void> => {
+    try {
+        const id = parseInt(String(req.params.id));
+        const { tipo_seguro, numero_contrato_poliza, fecha_inicio, fecha_fin } = req.body;
+
+        // Buscar póliza
+        const poliza = await prisma.poliza.findUnique({ where: { id } });
+        if (!poliza) {
+            res.status(404).json({ error: 'Póliza no encontrada.' });
+            return;
+        }
+
+        // Actualizar póliza
+        const polizaActualizada = await prisma.poliza.update({
+            where: { id },
+            data: {
+                ...(tipo_seguro && { tipo_seguro }),
+                ...(numero_contrato_poliza && { numero_contrato_poliza }),
+                ...(fecha_inicio && { fecha_inicio: new Date(fecha_inicio) }),
+                ...(fecha_fin && { fecha_fin: new Date(fecha_fin) }),
+            },
+            include: {
+                empresa: true,
+                asegurado: true,
+            },
+        });
+
+        res.status(200).json({
+            mensaje: 'Póliza actualizada exitosamente',
+            poliza: polizaActualizada,
+        });
+    } catch (error) {
+        console.error('Error al actualizar póliza:', error);
+        res.status(500).json({ error: 'Error interno del servidor.' });
+    }
+});
+
+/**
+ * DELETE /api/v1/admin/polizas/:id
+ * Elimina una póliza específica
+ */
+router.delete('/polizas/:id', requireAuth, async (req: Request, res: Response): Promise<void> => {
+    try {
+        const id = parseInt(String(req.params.id));
+
+        // Buscar póliza
+        const poliza = await prisma.poliza.findUnique({ where: { id } });
+        if (!poliza) {
+            res.status(404).json({ error: 'Póliza no encontrada.' });
+            return;
+        }
+
+        // Eliminar póliza
+        await prisma.poliza.delete({ where: { id } });
+
+        res.status(200).json({
+            mensaje: 'Póliza eliminada exitosamente',
+            id,
+        });
+    } catch (error) {
+        console.error('Error al eliminar póliza:', error);
+        res.status(500).json({ error: 'Error interno del servidor.' });
+    }
+});
+
 /**
  * GET /api/v1/admin/empresas
  * Lista todas las empresas

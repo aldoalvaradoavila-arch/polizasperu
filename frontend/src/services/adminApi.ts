@@ -230,6 +230,62 @@ class AdminAPI {
 
         return response.json();
     }
+
+    // ========== GESTIÓN DE PÓLIZAS ==========
+
+    async agregarPoliza(dni: string, data: {
+        tipo_seguro: string;
+        numero_contrato_poliza: string;
+        fecha_inicio: string;
+        fecha_fin: string;
+    }): Promise<{ mensaje: string; poliza: Poliza }> {
+        const response = await fetch(`${API_URL}/api/v1/admin/asegurados/${dni}/polizas`, {
+            method: 'POST',
+            headers: this.getHeaders(),
+            body: JSON.stringify(data),
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Error al agregar póliza');
+        }
+
+        return response.json();
+    }
+
+    async actualizarPoliza(id: number, data: {
+        tipo_seguro?: string;
+        numero_contrato_poliza?: string;
+        fecha_inicio?: string;
+        fecha_fin?: string;
+    }): Promise<{ mensaje: string; poliza: Poliza }> {
+        const response = await fetch(`${API_URL}/api/v1/admin/polizas/${id}`, {
+            method: 'PUT',
+            headers: this.getHeaders(),
+            body: JSON.stringify(data),
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Error al actualizar póliza');
+        }
+
+        return response.json();
+    }
+
+    async eliminarPoliza(id: number): Promise<{ mensaje: string; id: number }> {
+        const response = await fetch(`${API_URL}/api/v1/admin/polizas/${id}`, {
+            method: 'DELETE',
+            headers: this.getHeaders(),
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Error al eliminar póliza');
+        }
+
+        return response.json();
+    }
 }
 
 export default AdminAPI;
