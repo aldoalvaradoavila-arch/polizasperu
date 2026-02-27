@@ -238,6 +238,7 @@ class AdminAPI {
         numero_contrato_poliza: string;
         fecha_inicio: string;
         fecha_fin: string;
+        ruc: string;
     }): Promise<{ mensaje: string; poliza: Poliza }> {
         const response = await fetch(`${API_URL}/api/v1/admin/asegurados/${dni}/polizas`, {
             method: 'POST',

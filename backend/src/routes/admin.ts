@@ -195,11 +195,11 @@ router.put('/asegurados/:dni', requireAuth, async (req: Request, res: Response):
 router.post('/asegurados/:dni/polizas', requireAuth, async (req: Request, res: Response): Promise<void> => {
     try {
         const dni = String(req.params.dni);
-        const { tipo_seguro, numero_contrato_poliza, fecha_inicio, fecha_fin } = req.body;
+        const { tipo_seguro, numero_contrato_poliza, fecha_inicio, fecha_fin, ruc } = req.body;
 
         // Validaciones
-        if (!tipo_seguro || !numero_contrato_poliza || !fecha_inicio || !fecha_fin) {
-            res.status(400).json({ error: 'Todos los campos son requeridos.' });
+        if (!tipo_seguro || !numero_contrato_poliza || !fecha_inicio || !fecha_fin || !ruc) {
+            res.status(400).json({ error: 'Todos los campos son requeridos (incluyendo RUC de empresa).' });
             return;
         }
 
@@ -210,10 +210,10 @@ router.post('/asegurados/:dni/polizas', requireAuth, async (req: Request, res: R
             return;
         }
 
-        // Buscar primera empresa disponible (o usar la del body si se envía)
-        const empresa = await prisma.empresa.findFirst();
+        // Buscar empresa por RUC
+        const empresa = await prisma.empresa.findUnique({ where: { ruc: String(ruc) } });
         if (!empresa) {
-            res.status(500).json({ error: 'No hay empresas en la base de datos.' });
+            res.status(404).json({ error: 'Empresa no encontrada con el RUC proporcionado.' });
             return;
         }
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AdminAPI, { Asegurado, Poliza } from '../services/adminApi';
 
 interface AseguradoPolizasModalProps {
@@ -210,14 +210,36 @@ interface PolizaModalProps {
 }
 
 function PolizaModal({ asegurado, poliza, api, onClose, onSuccess }: PolizaModalProps) {
+    const [empresas, setEmpresas] = useState<{ ruc: string; razon_social: string }[]>([]);
     const [formData, setFormData] = useState({
         tipo_seguro: poliza?.tipo_seguro || 'SCTR_SALUD',
         numero_contrato_poliza: poliza?.numero_contrato_poliza || '',
         fecha_inicio: poliza?.fecha_inicio ? new Date(poliza.fecha_inicio).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
         fecha_fin: poliza?.fecha_fin ? new Date(poliza.fecha_fin).toISOString().split('T')[0] : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        ruc: poliza?.empresa?.ruc || '',
     });
     const [loading, setLoading] = useState(false);
+    const [loadingEmpresas, setLoadingEmpresas] = useState(true);
     const [error, setError] = useState('');
+
+    // Cargar lista de empresas al abrir el modal
+    useEffect(() => {
+        const fetchEmpresas = async () => {
+            try {
+                const data = await api.getEmpresas();
+                setEmpresas(data.empresas);
+                // Si no hay empresa seleccionada y hay empresas disponibles, preseleccionar la primera
+                if (!formData.ruc && data.empresas.length > 0) {
+                    setFormData(prev => ({ ...prev, ruc: data.empresas[0].ruc }));
+                }
+            } catch (err) {
+                setError('Error al cargar la lista de empresas.');
+            } finally {
+                setLoadingEmpresas(false);
+            }
+        };
+        fetchEmpresas();
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -264,6 +286,33 @@ function PolizaModal({ asegurado, poliza, api, onClose, onSuccess }: PolizaModal
                         <div className="form-section">
                             <h3>Datos de la Póliza</h3>
                             <div className="form-grid">
+                                <div className="form-group">
+                                    <label>Empresa Contratante *</label>
+                                    {loadingEmpresas ? (
+                                        <select disabled>
+                                            <option>Cargando empresas...</option>
+                                        </select>
+                                    ) : (
+                                        <select
+                                            value={formData.ruc}
+                                            onChange={(e) => setFormData({ ...formData, ruc: e.target.value })}
+                                            required
+                                        >
+                                            <option value="">Seleccionar empresa...</option>
+                                            {empresas.map((empresa) => (
+                                                <option key={empresa.ruc} value={empresa.ruc}>
+                                                    {empresa.razon_social} ({empresa.ruc})
+                                                </option>
+                                            ))}
+                                        </select>
+                                    )}
+                                    {!loadingEmpresas && empresas.length === 0 && (
+                                        <small style={{ color: '#e74c3c' }}>
+                                            No hay empresas registradas. Crea una primero.
+                                        </small>
+                                    )}
+                                </div>
+
                                 <div className="form-group">
                                     <label>Tipo de Seguro *</label>
                                     <select
@@ -314,7 +363,7 @@ function PolizaModal({ asegurado, poliza, api, onClose, onSuccess }: PolizaModal
                         <button type="button" className="btn btn-secondary" onClick={onClose} disabled={loading}>
                             Cancelar
                         </button>
-                        <button type="submit" className="btn btn-primary" disabled={loading}>
+                        <button type="submit" className="btn btn-primary" disabled={loading || loadingEmpresas || empresas.length === 0}>
                             {loading ? 'Guardando...' : poliza ? 'Actualizar' : 'Agregar'}
                         </button>
                     </div>
